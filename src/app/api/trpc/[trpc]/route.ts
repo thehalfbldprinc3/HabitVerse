@@ -1,9 +1,8 @@
-// src/app/api/trpc/[trpc]/route.ts
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
-import { appRouter } from '../../../../server/trpc/router';
+import { appRouter } from '@/server/trpc/routers/index';
 import { createContext } from '@/server/trpc/context';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 const handler = (req: Request) =>
   fetchRequestHandler({

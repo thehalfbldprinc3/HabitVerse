@@ -1,3 +1,5 @@
+//src/server/index.ts
+
 import { initTRPC } from '@trpc/server';
 import type { Context } from './context';
 

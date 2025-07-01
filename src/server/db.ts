@@ -1,17 +1,15 @@
-// src/server/db.ts
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/generated/prisma/client';
 
 declare global {
-  // Allow global `var` usage for hot-reloading in dev
-  // Prevent multiple PrismaClient instances in dev
+  // Allow global `prisma` variable in dev to prevent hot-reload duplicates
   // eslint-disable-next-line no-var
   var prisma: PrismaClient | undefined;
 }
 
 export const db =
-  global.prisma ||
+  global.prisma ??
   new PrismaClient({
-    log: ['query'], // Optional: Remove in production
+    log: ['query'],
   });
 
 if (process.env.NODE_ENV !== 'production') global.prisma = db;
