@@ -5,7 +5,7 @@ import {
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/customHeader';
-import { TRPCProvider } from '@/utils/trpcProvider'; // ADD THIS
+import { TRPCProvider } from '@/utils/trpcProvider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',

@@ -16,8 +16,6 @@ export default function NewHabitPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     createHabit.mutate({
-      userId: "hardcoded-user-id",
-      tenantId: "hardcoded-tenant-id",
       title,
       frequency,
       startDate: new Date().toISOString(),
