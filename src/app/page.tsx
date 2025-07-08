@@ -1,29 +1,21 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
+import SignedInLanding from "@/components/landing/signedInLanding";
+import PublicLanding from "@/components/landing/publicLanding";
 
-export default function Home() {
-  const { isSignedIn, user } = useUser();
 
-  if (isSignedIn) {
-    return (
-      <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-        <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-          <h1>Welcome back, {user.firstName}</h1>
-        </main>
-        <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        </footer>
-      </div>
-    );
-  }
 
+export default function HomePage() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <h1>Welcome to the site</h1>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-      </footer>
+    <div className="min-h-screen flex flex-col overflow-x-hidden overflow-y-auto">
+      <SignedIn>
+        <SignedInLanding />
+      </SignedIn>
+      <SignedOut>
+        <PublicLanding />
+      </SignedOut>
+      
     </div>
   );
 }

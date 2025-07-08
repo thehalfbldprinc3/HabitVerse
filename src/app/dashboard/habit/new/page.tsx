@@ -29,7 +29,7 @@ export default function NewHabitPage() {
     if (reminderTime) {
       const [hh, mm] = reminderTime.split(":").map(Number);
       if (
-        Number.isNaN(hh) || Number.isNaN(mm) ||
+        isNaN(hh) || isNaN(mm) ||
         hh < 0 || hh > 23 || mm < 0 || mm > 59
       ) {
         errs.reminderTime = "Invalid time.";
@@ -51,7 +51,8 @@ export default function NewHabitPage() {
       description,
       icon,
       color,
-      reminderTime: reminderTime ? reminderTime : undefined,
+      reminderTime: reminderTime || undefined,
+      groupId: "your-group-id-here", // replace with actual groupId
     });
   };
 
@@ -77,11 +78,10 @@ export default function NewHabitPage() {
           Title
         </label>
         <input
-          className={`w-full px-4 py-2 border rounded-md bg-transparent text-neutral-900 dark:text-white ${
-            errors.title
+          className={`w-full px-4 py-2 border rounded-md bg-transparent text-neutral-900 dark:text-white ${errors.title
               ? "border-red-500 focus:ring-red-500"
               : "border-neutral-300 dark:border-neutral-700 focus:ring-indigo-500"
-          } focus:outline-none focus:ring-2`}
+            } focus:outline-none focus:ring-2`}
           placeholder="e.g., Meditate"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -122,11 +122,10 @@ export default function NewHabitPage() {
           </label>
           <input
             type="time"
-            className={`w-full px-4 py-2 border rounded-md bg-transparent text-neutral-900 dark:text-white ${
-              errors.reminderTime
+            className={`w-full px-4 py-2 border rounded-md bg-transparent text-neutral-900 dark:text-white ${errors.reminderTime
                 ? "border-red-500 focus:ring-red-500"
                 : "border-neutral-300 dark:border-neutral-700 focus:ring-indigo-500"
-            } focus:outline-none focus:ring-2`}
+              } focus:outline-none focus:ring-2`}
             value={reminderTime}
             onChange={(e) => setReminderTime(e.target.value)}
           />
@@ -144,11 +143,10 @@ export default function NewHabitPage() {
           <input
             type="text"
             maxLength={2}
-            className={`w-full px-4 py-2 border rounded-md bg-transparent text-neutral-900 dark:text-white ${
-              errors.icon
+            className={`w-full px-4 py-2 border rounded-md bg-transparent text-neutral-900 dark:text-white ${errors.icon
                 ? "border-red-500 focus:ring-red-500"
                 : "border-neutral-300 dark:border-neutral-700 focus:ring-indigo-500"
-            } focus:outline-none focus:ring-2`}
+              } focus:outline-none focus:ring-2`}
             placeholder="🔥"
             value={icon}
             onChange={(e) => setIcon(e.target.value)}

@@ -20,16 +20,12 @@ export const userRouter = router({
       const clerkUser = await currentUser();
       if (!clerkUser) throw new Error('Clerk user not found');
 
-      const tenant = await db.tenant.findFirst();
-      if (!tenant) throw new Error('No tenant exists');
-
       return await db.user.create({
         data: {
           externalId: clerkUser.id,
           email: clerkUser.emailAddresses[0]?.emailAddress || '',
           name: clerkUser.firstName || '',
           imageUrl: clerkUser.imageUrl || '',
-          tenantId: tenant.id,
         },
       });
     } catch (error) {

@@ -17,3 +17,12 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans, Arial, Helvetica, sans-serif);
 }
+
+* {
+  user-select: none;
+}
+
+.drop-shadow-glow {
+  filter: drop-shadow(0 0 5px rgba(236, 72, 153, 0.6))
+          drop-shadow(0 0 10px rgba(236, 72, 153, 0.3));
+}
