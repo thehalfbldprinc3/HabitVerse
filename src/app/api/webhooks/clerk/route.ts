@@ -1,24 +1,14 @@
-import { buffer } from 'micro';
-import type { NextApiRequest, NextApiResponse } from 'next';
 import { Webhook } from 'svix';
-import type { WebhookRequiredHeaders } from 'svix';
-import type { WebhookEvent } from '@clerk/nextjs/server';
 import { db } from '@/server/db';
+import { NextRequest, NextResponse } from 'next/server';
+import type { WebhookEvent } from '@clerk/nextjs/server';
+import type { WebhookRequiredHeaders } from 'svix';
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') return res.status(405).end('Method Not Allowed');
-
-  const payload = (await buffer(req)).toString();
-  const headers = req.headers as unknown as WebhookRequiredHeaders;
-
+export async function POST(req: NextRequest) {
+  const payload = await req.text();
+  const headers = Object.fromEntries(req.headers.entries()) as unknown as WebhookRequiredHeaders;
   const secret = process.env.CLERK_WEBHOOK_SECRET;
-  if (!secret) return res.status(500).send('Missing webhook secret');
+  if (!secret) return new NextResponse('Missing webhook secret', { status: 500 });
 
   const wh = new Webhook(secret);
 
@@ -26,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     evt = wh.verify(payload, headers) as WebhookEvent;
   } catch {
-    return res.status(400).send('Invalid signature');
+    return new NextResponse('Invalid signature', { status: 400 });
   }
 
   if (evt.type === 'user.created') {
@@ -47,5 +37,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  res.status(200).send('OK');
+  return new NextResponse('OK', { status: 200 });
 }
