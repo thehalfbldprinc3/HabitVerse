@@ -5,7 +5,6 @@ import SignedInLanding from "@/components/landing/signedInLanding";
 import PublicLanding from "@/components/landing/publicLanding";
 
 
-
 export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden overflow-y-auto">
@@ -15,7 +14,6 @@ export default function HomePage() {
       <SignedOut>
         <PublicLanding />
       </SignedOut>
-      
     </div>
   );
 }

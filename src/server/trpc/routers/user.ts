@@ -1,37 +1,33 @@
-import { router, publicProcedure } from '@/server/trpc';
+import { router, publicProcedure, protectedProcedure } from '@/server/trpc';
 import { db } from '@/server/db';
-import { currentUser } from '@clerk/nextjs/server';
 import {
   userCreateSchema,
   userIdSchema,
   userUpdateSchema,
 } from '@/shared/schemas/user';
+import { clerkClient } from '@clerk/clerk-sdk-node';
 
 export const userRouter = router({
-  getOrCreate: publicProcedure.query(async ({ ctx }) => {
-    try {
-      if (!ctx.userId) return null;
 
-      const existing = await db.user.findUnique({
-        where: { externalId: ctx.userId },
-      });
-      if (existing) return existing;
+  getOrCreate: protectedProcedure.query(async ({ ctx }) => {
+    const externalId = ctx.userId;
+    if (!externalId) return null;
 
-      const clerkUser = await currentUser();
-      if (!clerkUser) throw new Error('Clerk user not found');
+    const existing = await db.user.findUnique({
+      where: { externalId },
+    });
 
-      return await db.user.create({
-        data: {
-          externalId: clerkUser.id,
-          email: clerkUser.emailAddresses[0]?.emailAddress || '',
-          name: clerkUser.firstName || '',
-          imageUrl: clerkUser.imageUrl || '',
-        },
-      });
-    } catch (error) {
-      console.error('getOrCreate error:', error);
-      throw new Error('Failed to get or create user');
-    }
+    if (existing) return existing;
+
+    const clerkUser = await clerkClient.users.getUser(externalId);
+    return await db.user.create({
+      data: {
+        externalId: clerkUser.id,
+        email: clerkUser.emailAddresses[0]?.emailAddress ?? 'unknown@example.com',
+        name: clerkUser.firstName ?? clerkUser.username ?? clerkUser.id,
+        imageUrl: clerkUser.imageUrl ?? null,
+      },
+    });
   }),
 
   create: publicProcedure.input(userCreateSchema).mutation(async ({ input }) => {
@@ -43,7 +39,7 @@ export const userRouter = router({
     }
   }),
 
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     try {
       return await db.user.findMany({ orderBy: { createdAt: 'desc' } });
     } catch (error) {
@@ -52,7 +48,7 @@ export const userRouter = router({
     }
   }),
 
-  getById: publicProcedure.input(userIdSchema).query(async ({ input }) => {
+  getById: protectedProcedure.input(userIdSchema).query(async ({ input }) => {
     try {
       return await db.user.findUnique({ where: { id: input.id } });
     } catch (error) {
@@ -61,7 +57,7 @@ export const userRouter = router({
     }
   }),
 
-  update: publicProcedure.input(userUpdateSchema).mutation(async ({ input }) => {
+  update: protectedProcedure.input(userUpdateSchema).mutation(async ({ input }) => {
     try {
       const { id, ...data } = input;
       return await db.user.update({ where: { id }, data });
@@ -71,7 +67,7 @@ export const userRouter = router({
     }
   }),
 
-  delete: publicProcedure.input(userIdSchema).mutation(async ({ input }) => {
+  delete: protectedProcedure.input(userIdSchema).mutation(async ({ input }) => {
     try {
       return await db.user.delete({ where: { id: input.id } });
     } catch (error) {
