@@ -3,10 +3,16 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export default clerkMiddleware(async (auth, req: NextRequest) => {
+  const pathname = req.nextUrl.pathname;
+
+  // Skip middleware for the Clerk webhook
+  if (pathname === "/api/webhooks/clerk") {
+    return NextResponse.next();
+  }
+
   const session = await auth();
   const userId = session.userId;
-
-  const isPublicRoute = req.nextUrl.pathname === "/";
+  const isPublicRoute = pathname === "/";
 
   if (!userId && !isPublicRoute) {
     return NextResponse.redirect(new URL("/", req.url));
@@ -16,9 +22,5 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
 });
 
 export const config = {
-  matcher: [
-    "/((?!_next|.*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    "/(api|trpc)(.*)",
-    "!/api/webhooks/clerk"
-  ],
+  matcher: ["/((?!_next|.*\\..*).*)"], // Match all routes excluding static assets
 };
