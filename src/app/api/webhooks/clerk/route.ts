@@ -1,41 +1,60 @@
+import { buffer } from 'micro';
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { Webhook } from 'svix';
-import { db } from '@/server/db';
-import { NextRequest, NextResponse } from 'next/server';
-import type { WebhookEvent } from '@clerk/nextjs/server';
 import type { WebhookRequiredHeaders } from 'svix';
+import type { WebhookEvent } from '@clerk/nextjs/server';
+import { db } from '@/server/db';
 
-export async function POST(req: NextRequest) {
-  const payload = await req.text();
-  const headers = Object.fromEntries(req.headers.entries()) as unknown as WebhookRequiredHeaders;
-  const secret = process.env.CLERK_WEBHOOK_SECRET;
-  if (!secret) return new NextResponse('Missing webhook secret', { status: 500 });
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
 
-  const wh = new Webhook(secret);
-
-  let evt: WebhookEvent;
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    evt = wh.verify(payload, headers) as WebhookEvent;
-  } catch {
-    return new NextResponse('Invalid signature', { status: 400 });
-  }
+    if (req.method !== 'POST') return res.status(405).end('Method Not Allowed');
 
-  if (evt.type === 'user.created') {
-    const user = evt.data;
-    const externalId = user.id;
+    const payload = (await buffer(req)).toString();
+    const headers = req.headers as unknown as WebhookRequiredHeaders;
 
-    const existing = await db.user.findUnique({ where: { externalId } });
-
-    if (!existing) {
-      await db.user.create({
-        data: {
-          externalId,
-          email: user.email_addresses?.[0]?.email_address ?? 'unknown@example.com',
-          name: user.first_name ?? user.username ?? user.id,
-          imageUrl: user.image_url ?? null,
-        },
-      });
+    const secret = process.env.CLERK_WEBHOOK_SECRET;
+    if (!secret) {
+      console.error('Missing CLERK_WEBHOOK_SECRET');
+      return res.status(500).send('Missing webhook secret');
     }
-  }
 
-  return new NextResponse('OK', { status: 200 });
+    const wh = new Webhook(secret);
+    const evt = wh.verify(payload, headers) as WebhookEvent;
+
+    console.log('Webhook event received:', evt.type);
+
+    if (evt.type === 'user.created') {
+      const user = evt.data;
+      const externalId = user.id;
+
+      const existing = await db.user.findUnique({
+        where: { externalId },
+      });
+
+      if (!existing) {
+        await db.user.create({
+          data: {
+            externalId,
+            email: user.email_addresses?.[0]?.email_address ?? 'unknown@example.com',
+            name: user.first_name ?? user.username ?? user.id,
+            imageUrl: user.image_url ?? null,
+          },
+        });
+        console.log('User created:', externalId);
+      } else {
+        console.log('User already exists:', externalId);
+      }
+    }
+
+    res.status(200).send('OK');
+  } catch (err) {
+    console.error('Webhook handler error:', err);
+    res.status(500).send('Webhook handler failure');
+  }
 }
